@@ -398,7 +398,7 @@ local function adjust_tile_above(pos_above, item, construction_type)
     local tt_above = dfhack.maps.getTileType(pos_above)
     local shape_above = df.tiletype.attrs[tt_above].shape
     if shape_above ~= df.tiletype_shape.EMPTY
-            and shape_above == df.tiletype_shape.RAMP_TOP then
+            and shape_above ~= df.tiletype_shape.RAMP_TOP then
         return
     end
     if construction_type == df.construction_type.Wall then
