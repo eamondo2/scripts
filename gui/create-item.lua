@@ -4,6 +4,7 @@
 --@module = true
 
 local utils = require 'utils'
+local guidm = require('gui.dwarfmode')
 
 function getGenderString(gender)
   local sym = df.pronoun_type.attrs[gender].symbol
@@ -213,8 +214,9 @@ local function getCreatureRaceAndCaste(caste)
  return df.global.world.raws.creatures.list_creature[caste.index],df.global.world.raws.creatures.list_caste[caste.index]
 end
 
-local CORPSE_PIECES = utils.invert{'BONE', 'SKIN', 'CARTILAGE', 'TOOTH', 'NERVE', 'NAIL', 'HORN', 'HOOF' }
+local CORPSE_PIECES = utils.invert{'BONE', 'SKIN', 'CARTILAGE', 'TOOTH', 'NERVE', 'NAIL', 'HORN', 'HOOF', 'CHITIN', 'SHELL', 'IVORY', 'SCALE' }
 local HAIR_PIECES = utils.invert{'HAIR', 'EYEBROW', 'EYELASH', 'MOUSTACHE', 'CHIN_WHISKERS', 'SIDEBURNS' }
+local LIQUID_PIECES = utils.invert{'BLOOD', 'PUS', 'VENOM', 'SWEAT', 'TEARS', 'SPIT', 'MILK' }
 
 function createCorpsePiece(creator, bodypart, partlayer, creatureID, casteID, generic, quality) -- this part was written by four rabbits in a trenchcoat (ppaawwll)
  -- (partlayer is also used to determine the material if we're spawning a "generic" body part (i'm just lazy lol))
@@ -228,9 +230,11 @@ function createCorpsePiece(creator, bodypart, partlayer, creatureID, casteID, ge
  -- get body info for easy reference
  local creatorBody = creatorRaceRaw.caste[casteID].body_info
  local layerName
- local layerMat
+ local layerMat = "BONE"
  local tissueID
- if not generic then -- if we have a specified body part and layer, figure all the stuff out about that
+ local liquid = false
+ local isCorpse = bodypart == -1 -- in the hackWish function, the bodypart variable is initialized to -1, which isn't changed if the spawned item is a corpse
+ if not generic and not isCorpse then -- if we have a specified body part and layer, figure all the stuff out about that
  -- store the tissue id of the specific layer we selected
   tissueID = tonumber(creatorBody.body_parts[bodypart].layers[partlayer].tissue_id)
   layerMat = {}
@@ -240,7 +244,7 @@ function createCorpsePiece(creator, bodypart, partlayer, creatureID, casteID, ge
   end
   layerMat = layerMat[3]
   layerName = creatorBody.body_parts[bodypart].layers[partlayer].layer_name
- else -- otherwise, figure out the mat name from the dual-use partlayer argument
+ elseif not isCorpse then -- otherwise, figure out the mat name from the dual-use partlayer argument
   layerMat = creatorRaceRaw.material[partlayer].id
   layerName = layerMat
  end
@@ -255,6 +259,13 @@ function createCorpsePiece(creator, bodypart, partlayer, creatureID, casteID, ge
   item_type = "GLOB"
  elseif CORPSE_PIECES[layerName] or HAIR_PIECES[layerName] then -- check if hair
   item_type = "CORPSEPIECE"
+ elseif LIQUID_PIECES[layerName] then
+  item_type = "LIQUID_MISC"
+  liquid = true
+ end
+ if isCorpse then
+  item_type = "CORPSE"
+  generic = true
  end
  local itemType = dfhack.items.findType(item_type..":NONE")
  local itemSubtype = dfhack.items.findSubtype(item_type..":NONE")
@@ -262,8 +273,25 @@ function createCorpsePiece(creator, bodypart, partlayer, creatureID, casteID, ge
  local materialInfo = dfhack.matinfo.find(material)
  local item_id = dfhack.items.createItem(itemType, itemSubtype, materialInfo['type'], materialInfo.index, creator)
  local item = df.item.find(item_id)
- item:setQuality(quality)
- local isCorpsePiece = false
+ if liquid then
+  local bucketMat = dfhack.matinfo.find("PLANT_MAT:NETHER_CAP:WOOD")
+  if not bucketMat then
+   for i,n in ipairs(df.global.world.raws.plants.all) do
+    if n.flags.TREE then
+     bucketMat = dfhack.matinfo.find("PLANT_MAT:"..n.id..":WOOD")
+    end
+    if bucketMat then break end
+   end
+  end
+  local prevCursorPos = guidm.getCursorPos()
+  local bucketType = dfhack.items.findType("BUCKET:NONE")
+  local bucket = df.item.find(dfhack.items.createItem(bucketType, -1, bucketMat.type, bucketMat.index, creator))
+  dfhack.items.moveToContainer(item, bucket)
+  guidm.setCursorPos(creator.pos)
+  dfhack.run_command("spotclean")
+  guidm.setCursorPos(prevCursorPos)
+ end
+
  -- if the item type is a corpsepiece, we know we have one, and then go on to set the appropriate flags
  if item_type == "CORPSEPIECE" then
   if layerName == "BONE" then -- check if bones
@@ -280,7 +308,7 @@ function createCorpsePiece(creator, bodypart, partlayer, creatureID, casteID, ge
     item.corpse_flags.yarn = true
     item.material_amount.Yarn = 1
    end
-  elseif layerName == "TOOTH" then -- check if tooth
+  elseif layerName == "TOOTH" or layerName == "IVORY" then -- check if tooth
    item.corpse_flags.tooth = true
    item.material_amount.Tooth = 1
   elseif layerName == "NERVE" then -- check if nervous tissue
@@ -290,10 +318,12 @@ function createCorpsePiece(creator, bodypart, partlayer, creatureID, casteID, ge
   elseif layerName == "HORN" or layerName == "HOOF" then -- check if nail
    item.corpse_flags.horn = true
    item.material_amount.Horn = 1
-   isCorpsePiece = true
+  elseif layerName == "SHELL" then
+   item.corpse_flags.shell = true
+   item.material_amount.Shell = 1
   end
   -- checking for skull
-  if not generic and creatorBody.body_parts[bodypart].token == "SKULL" then
+  if not generic and not isCorpse and creatorBody.body_parts[bodypart].token == "SKULL" then
    item.corpse_flags.skull2 = true
   end
  end
@@ -304,7 +334,7 @@ function createCorpsePiece(creator, bodypart, partlayer, creatureID, casteID, ge
    matType = creatorRaceRaw.tissue[i].mat_type
   end
  end
- if item_type == "CORPSEPIECE" then
+ if item_type == "CORPSEPIECE" or item_type == "CORPSE" then
   --referencing the source unit for, material, relation purposes???
   item.race = creatureID
   item.normal_race = creatureID
@@ -337,6 +367,9 @@ function createCorpsePiece(creator, bodypart, partlayer, creatureID, casteID, ge
    item.body.components.layer_status:insert(i,creator.body.components.layer_status[0]) --copy the layer status of the creator's first layer to every layer_status of the desired creature
    item.body.components.layer_status[i].gone = true
   end
+  if item_type == "CORPSE" then
+   item.corpse_flags.unbutchered = true
+  end
   if not generic then
    -- keeps the body part that the user selected to spawn the item from
    item.body.components.body_part_status[bodypart].missing = false
@@ -345,12 +378,17 @@ function createCorpsePiece(creator, bodypart, partlayer, creatureID, casteID, ge
   elseif generic then
    for i in pairs(creatorBody.body_parts) do
      for n in pairs(creatorBody.body_parts[i].layers) do
-      -- search through the target creature's body parts and bring back every one which has the desired material
-      if creatorRaceRaw.tissue[creatorBody.body_parts[i].layers[n].tissue_id].tissue_material_str[1] == layerMat and creatorBody.body_parts[i].token ~= "SKULL" and not creatorBody.body_parts[i].flags.SMALL then
+      if item_type == "CORPSE" then
        item.body.components.body_part_status[i].missing = false
-       item.body.components.body_part_status[i].grime = 2
        item.body.components.layer_status[creatorBody.body_parts[i].layers[n].layer_id].gone = false
-       -- save the index of the bone layer to a variable
+      else
+       -- search through the target creature's body parts and bring back every one which has the desired material
+       if creatorRaceRaw.tissue[creatorBody.body_parts[i].layers[n].tissue_id].tissue_material_str[1] == layerMat and creatorBody.body_parts[i].token ~= "SKULL" and not creatorBody.body_parts[i].flags.SMALL then
+        item.body.components.body_part_status[i].missing = false
+        item.body.components.body_part_status[i].grime = 2
+        item.body.components.layer_status[creatorBody.body_parts[i].layers[n].layer_id].gone = false
+        -- save the index of the bone layer to a variable
+       end
       end
      end
     end
@@ -364,9 +402,11 @@ function hackWish(unit)
  script.start(function()
   local amountok, amount
   local matok,mattype,matindex,matFilter
-  local itemok,itemtype,itemsubtype=showItemPrompt('What item do you want?',function(itype) return df.item_type[itype]~='CORPSE' and df.item_type[itype]~='FOOD' end ,true)
+  local partlayerok, partlayerID = false, 0
+  local qualityok, quality = false, 0
+  local itemok,itemtype,itemsubtype=showItemPrompt('What item do you want?',function(itype) return df.item_type[itype]~='FOOD' end ,true)
   local corpsepieceGeneric
-  local bodypart
+  local bodypart = -1
   if not itemok then return end
   if not args.notRestrictive then
    matFilter=getMatFilter(itemtype)
@@ -380,12 +420,12 @@ function hackWish(unit)
    mattype,matindex=getCreatureRaceAndCaste(creatureTable[3])
   end
   if df.item_type[itemtype]=='CORPSEPIECE' then
-    local bodpartok,bodypartLocal=script.showListPrompt('Wish','What body part should it be?',COLOR_LIGHTGREEN,getCreaturePartList(mattype,matindex),1,true)
-    -- createCorpsePiece() references the bodypart variable so it can't be local to here
-    bodypart = bodypartLocal
-    if bodypart == 1 then
+   local bodpartok,bodypartLocal=script.showListPrompt('Wish','What body part should it be?',COLOR_LIGHTGREEN,getCreaturePartList(mattype,matindex),1,true)
+   -- createCorpsePiece() references the bodypart variable so it can't be local to here
+   bodypart = bodypartLocal
+   if bodypart == 1 then
      corpsepieceGeneric = true
-    end
+   end
    if not bodpartok then return end
    if not corpsepieceGeneric then -- probably a better way of doing this tbh
     partlayerok,partlayerID=script.showListPrompt('Wish','What tissue layer should it be?',COLOR_LIGHTGREEN,getCreaturePartLayerList(mattype,matindex,bodypart-2),1,true)
@@ -393,14 +433,18 @@ function hackWish(unit)
     partlayerok,partlayerID=script.showListPrompt('Wish','What creature material should it be?',COLOR_LIGHTGREEN,getCreatureMaterialList(mattype,matindex),1,true)
    end
     if not partlayerok then return end
+  elseif df.item_type[itemtype]~='CORPSE' then
+   qualityok,quality=script.showListPrompt('Wish','What quality should it be?',COLOR_LIGHTGREEN,qualityTable())
+   if not qualityok then return end
   end
-  local qualityok,quality=script.showListPrompt('Wish','What quality should it be?',COLOR_LIGHTGREEN,qualityTable())
-  if not qualityok then return end
   local description
   if df.item_type[itemtype]=='SLAB' then
    local descriptionok
    descriptionok,description=script.showInputPrompt('Slab','What should the slab say?',COLOR_WHITE)
    if not descriptionok then return end
+  end
+  if bodypart ~= -1 then
+   bodypart = bodypart - 2 --the offsets here are cause indexes in lua are wonky (some start at 0, some start at 1), so we adjust for that, as well as the index offset created by inserting the "generic" option at the start of the body part selection prompt
   end
   if args.multi then
    repeat amountok,amount=script.showInputPrompt('Wish','How many do you want? (numbers only!)',COLOR_LIGHTGREEN) until tonumber(amount) or not amountok
@@ -409,12 +453,12 @@ function hackWish(unit)
     if df.item_type.attrs[itemtype].is_stackable then
      createItem({mattype,matindex},{itemtype,itemsubtype},quality,unit,description,amount)
     else
-     local isCorpsePiece = itemtype == df.item_type.CORPSEPIECE
+     local isCorpsePiece = itemtype == df.item_type.CORPSEPIECE or itemtype == df.item_type.CORPSE
      for i=1,amount do
       if not isCorpsePiece then
        createItem({mattype,matindex},{itemtype,itemsubtype},quality,unit,description,1)
       else
-       createCorpsePiece(unit,bodypart-2,partlayerID-1,mattype,matindex,corpsepieceGeneric,quality)
+       createCorpsePiece(unit,bodypart,partlayerID-1,mattype,matindex,corpsepieceGeneric,quality)
       end
      end
     end
@@ -423,10 +467,10 @@ function hackWish(unit)
    return false
   else
    if mattype and itemtype then
-      if itemtype ~= df.item_type.CORPSEPIECE then
+      if itemtype ~= df.item_type.CORPSEPIECE and itemtype ~= df.item_type.CORPSE then
        createItem({mattype,matindex},{itemtype,itemsubtype},quality,unit,description,1)
       else
-       createCorpsePiece(unit,bodypart-2,partlayerID-1,mattype,matindex,corpsepieceGeneric,quality)
+       createCorpsePiece(unit,bodypart,partlayerID-1,mattype,matindex,corpsepieceGeneric,quality)
       end
     return true
    end

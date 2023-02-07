@@ -3,7 +3,7 @@ catsplosion
 
 .. dfhack-tool::
     :summary: Cause pregnancies.
-    :tags: untested fort armok animals
+    :tags: fort armok animals
 
 This tool makes cats (or anything else) immediately pregnant. If you value your
 fps, it is a good idea to use this tool sparingly.

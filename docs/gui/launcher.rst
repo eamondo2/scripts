@@ -46,6 +46,11 @@ In any case, the command output will also be written to the DFHack terminal
 console (the separate window that comes up when you start DF) if you need to
 find it later.
 
+To pause or unpause the game while `gui/launcher` is open, hit the spacebar once
+or twice. If you are typing a command, the first space will go into the edit box
+for your commandline. If the commandline is empty or if it already ends in a
+space, space key will be passed through to the game to affect the pause button.
+
 If your keyboard layout makes any key impossible to type (such as :kbd:`[` and
 :kbd:`]` on German QWERTZ keyboards), use :kbd:`Ctrl`:kbd:`Shift`:kbd:`K` to
 bring up the on-screen keyboard. You can "type" the text you need by clicking
@@ -59,6 +64,9 @@ column. If the first word of what you've typed matches a valid command, then the
 autocomplete options will also include commands that have similar functionality
 to the one that you've named. Click on an autocomplete list option to select it
 or cycle through them with :kbd:`Shift`:kbd:`Left` and :kbd:`Shift`:kbd:`Right`.
+You can run a command quickly without parameters by double-clicking on the tool
+name in the list. Holding down shift while you double-click allows you to
+run the command and close `gui/launcher` at the same time.
 
 Context-sensitive help and command output
 -----------------------------------------
@@ -76,8 +84,9 @@ examples. You can scroll the help text with the mouse or with :kbd:`PgUp` and
 Once you run a command, the lower panel will switch to command output mode,
 where you can see any text the command printed to the screen. If you want to
 see more help text as you run further commands, you can switch the lower panel
-back to help mode with :kbd:`Ctrl`:kbd:`T`. The command output text is cleared
-when you dismiss the launcher window.
+back to help mode with :kbd:`Ctrl`:kbd:`T`. The output text is kept for all the
+commands you run while the launcher window is open, but is cleared if you
+dismiss the launcher window and bring it back up.
 
 Command history
 ---------------

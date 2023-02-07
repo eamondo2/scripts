@@ -430,6 +430,7 @@ function UnitSyndromes:init()
 end
 
 function UnitSyndromes:onInput(keys)
+    UnitSyndromes.super.onInput(self, keys)
     if keys._R_MOUSE_DOWN then
         self:previous_page()
         return true

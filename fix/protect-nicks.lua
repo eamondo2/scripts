@@ -1,11 +1,12 @@
--- Automate periodic running of the unsuspend script
---@module = true
---@enable = true
+-- Workaround for the v50.x bug where Dwarf Fortress doesn't set the creature nicknames everywhere.
+-- It leads the nickname to be sometimes lost, but also not displayed in legends, engravings, etc...
+--@ enable = true
+--@ module = true
 
 local json = require('json')
 local persist = require('persist-table')
 
-local GLOBAL_KEY = 'autounsuspend' -- used for state change hooks and persistence
+local GLOBAL_KEY = 'fix-protect-nicks'
 
 enabled = enabled or false
 
@@ -17,9 +18,16 @@ local function persist_state()
     persist.GlobalTable[GLOBAL_KEY] = json.encode({enabled=enabled})
 end
 
+-- Reassign all the units nicknames with "dfhack.units.setNickname"
+local function save_nicks()
+    for _,unit in pairs(df.global.world.units.active) do
+        dfhack.units.setNickname(unit, unit.name.nickname)
+    end
+end
+
 local function event_loop()
     if enabled then
-        dfhack.run_script('unsuspend', '--quiet')
+        save_nicks()
         dfhack.timeout(1, 'days', event_loop)
     end
 end
@@ -44,7 +52,8 @@ if dfhack_flags.module then
 end
 
 if df.global.gamemode ~= df.game_mode.DWARF or not dfhack.isMapLoaded() then
-    dfhack.printerr('autounsuspend needs a loaded fortress map to work')
+    -- Possibly to review with adventure mode
+    dfhack.printerr('fix/protect-nicks only works in fortress mode')
     return
 end
 
@@ -53,12 +62,17 @@ if dfhack_flags and dfhack_flags.enable then
     args = {dfhack_flags.enable_state and 'enable' or 'disable'}
 end
 
-local command = args[1]
-if command == "enable" then
+if args[1] == "enable" then
     enabled = true
-elseif command == "disable" then
+elseif args[1] == "disable" then
     enabled = false
+elseif args[1] == "now" then
+    print("Restoring and saving nicknames")
+    save_nicks()
+    return
 else
+    local enabled_str = enabled and "enabled" or "disabled"
+    print("fix/protect-nicks is currently " .. enabled_str)
     return
 end
 
