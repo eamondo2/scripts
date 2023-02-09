@@ -58,9 +58,14 @@ local function do_meta(zlevel, grid, ctx)
                             (modifiers.repeat_zoff > 0) and 'up' or 'down')
         end
         log('applying blueprint%s: "%s"', repeat_str, section_name)
-        quickfort_command.do_command_section(ctx, section_name, modifiers)
-        stats.meta_blueprints.value =
-                stats.meta_blueprints.value + modifiers.repeat_count
+        local ok, err = pcall(quickfort_command.do_command_section,
+                ctx, section_name, modifiers)
+        if ok then
+            stats.meta_blueprints.value =
+                    stats.meta_blueprints.value + modifiers.repeat_count
+        else
+            dfhack.printerr(err)
+        end
         -- don't let called blueprints permanently alter the z-level
         ctx.cursor.z = zlevel
     end

@@ -17,8 +17,6 @@ s_maxFish = s_maxFish or 100
 s_minFish = s_minFish or 75
 s_useRaw = s_useRaw or true
 isFishing = isFishing or true
-local timer = nil
-
 
 --- Check if the script is enabled.
 -- @return true if the script is enabled, otherwise false.

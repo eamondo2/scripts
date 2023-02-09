@@ -114,8 +114,6 @@ function do_set(args)
 end
 
 function do_reset()
-    print(string.format('reading quickfort configuration from "%s"',
-                        config_file))
     local get_reader_fn = function()
         return quickfort_reader.TextReader{filepath=config_file}
     end

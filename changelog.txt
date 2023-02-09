@@ -14,6 +14,7 @@ that repo.
 # Future
 
 ## New Scripts
+- `gui/dig`: digging designation tool for shapes and patterns
 - `makeown`: adds the selected unit as a member of your fortress
 
 ## Fixes
@@ -29,7 +30,7 @@ that repo.
 # 50.05-alpha3.1
 
 ## Fixes
-- `gui/launcher`: no longer resets to the Help tab on every keystroke
+-@ `gui/launcher`: no longer resets to the Help tab on every keystroke
 
 # 50.05-alpha3
 

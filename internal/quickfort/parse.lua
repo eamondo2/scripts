@@ -289,6 +289,10 @@ returns nil if the modeline is invalid.
 local function parse_modeline(modeline, filename, modeline_id)
     if not modeline then return nil end
     local _, mode_end, mode = string.find(modeline, '^#([%l]+)')
+    -- remove this as these modes become supported
+    if mode == 'place' or mode == 'zone' or mode == 'query' or mode == 'config' then
+        mode = 'ignore'
+    end
     if not mode or not valid_modes[mode] then return nil end
     local modeline_data, comment_start =
             parse_markers(modeline, mode_end+1, filename, modeline_marker_fns)

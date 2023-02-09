@@ -185,7 +185,7 @@ function OverlayConfig:refresh_list(filter)
         if not widget.hotspot and filter ~= 'all' then
             local matched = false
             for _,scr in ipairs(overlay.normalize_list(widget.viewscreens)) do
-                if overlay.simplify_viewscreen_name(scr) == self.scr_name then
+                if overlay.simplify_viewscreen_name(scr):startswith(self.scr_name) then
                     matched = true
                     break
                 end
