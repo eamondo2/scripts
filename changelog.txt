@@ -20,9 +20,10 @@ that repo.
 ## Fixes
 - `gui/unit-syndromes`: allow the window widgets to be interacted with
 - `fix/protect-nicks`: now works by setting the historical figure nickname
+- `gui/liquids`: fixed issues with unit pathing after adding/removing liquids
 
 ## Misc Improvements
-
+- `gui/gm-editor`: now supports multiple independent data inspection windows
 - `rejuvenate`: now takes an --age parameter to choose a desired age.
 
 ## Removed

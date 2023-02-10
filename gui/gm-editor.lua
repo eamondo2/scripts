@@ -119,6 +119,14 @@ function GmEditorUi:init(args)
         self.frame = {w=80, h=50}
     end
 
+    -- don't appear directly over the current window
+    if next(views) then
+        if self.frame.l then self.frame.l = self.frame.l + 1 end
+        if self.frame.r then self.frame.r = self.frame.r - 1 end
+        if self.frame.t then self.frame.t = self.frame.t + 1 end
+        if self.frame.b then self.frame.b = self.frame.b - 1 end
+    end
+
     self.stack={}
     self.item_count=0
     self.keys={}
@@ -555,11 +563,11 @@ function GmScreen:init(args)
     if not target then
         qerror('Target not found')
     end
-    self:addviews{GmEditorUi{view_id='main', target=target}}
+    self:addviews{GmEditorUi{target=target}}
 end
 
 function GmScreen:onDismiss()
-    view = nil
+    views[self] = nil
 end
 
 local function get_editor(args)
@@ -579,4 +587,5 @@ local function get_editor(args)
     end
 end
 
-view = view and view:raise() or get_editor{...}
+views = views or {}
+views[get_editor{...}] = true
