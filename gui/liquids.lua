@@ -238,7 +238,6 @@ SpawnLiquidScreen.ATTRS {
     focus_path = 'spawnliquid',
     pass_movement_keys = true,
     pass_mouse_clicks = false,
-    force_pause = true,
 }
 
 function SpawnLiquidScreen:init()

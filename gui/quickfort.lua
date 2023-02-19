@@ -604,10 +604,6 @@ function Quickfort:onInput(keys)
             return true
         end
     end
-
-    -- send movement and cancel keys through, but otherwise we're a modal dialog
-    if keys.LEAVESCREEN or keys._MOUSE_R_DOWN then return false end
-    return not guidm.getMapKey(keys)
 end
 
 function Quickfort:commit()
@@ -660,17 +656,13 @@ end
 QuickfortScreen = defclass(QuickfortScreen, gui.ZScreen)
 QuickfortScreen.ATTRS {
     focus_path='quickfort',
-    force_pause=true,
-    pass_pause=false,
     pass_movement_keys=true,
     pass_mouse_clicks=false,
     filter=DEFAULT_NIL,
 }
 
 function QuickfortScreen:init()
-    self.saved_pause_state = df.global.pause_state
-    df.global.pause_state = true
-    self:addviews{Quickfort{filter=filter}}
+    self:addviews{Quickfort{filter=self.filter}}
 end
 
 function QuickfortScreen:onShow()
@@ -680,7 +672,6 @@ end
 
 function QuickfortScreen:onDismiss()
     view = nil
-    df.global.pause_state = self.saved_pause_state
 end
 
 if dfhack_flags.module then

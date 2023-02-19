@@ -112,7 +112,6 @@ function doCheck()
             print(dfhack.df2console(msg))
         end
         dfhack.color()
-        df.global.pause_state = true
         return warning{messages=messages}:show()
     end
 end

@@ -496,9 +496,6 @@ function Blueprint:onInput(keys)
         end
         return true
     end
-
-    -- send movement keys through, but otherwise we're a modal dialog
-    return not guidm.getMapKey(keys)
 end
 
 -- assemble and execute the blueprint commandline
@@ -597,22 +594,17 @@ end
 BlueprintScreen = defclass(BlueprintScreen, gui.ZScreen)
 BlueprintScreen.ATTRS {
     focus_path='blueprint',
-    force_pause=true,
-    pass_pause=false,
     pass_movement_keys=true,
     pass_mouse_clicks=false,
     presets=DEFAULT_NIL,
 }
 
 function BlueprintScreen:init()
-    self.saved_pause_state = df.global.pause_state
-    df.global.pause_state = true
-    self:addviews{Blueprint{presets=presets}}
+    self:addviews{Blueprint{presets=self.presets}}
 end
 
 function BlueprintScreen:onDismiss()
     view = nil
-    df.global.pause_state = self.saved_pause_state
 end
 
 if dfhack_flags.module then

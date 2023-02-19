@@ -9,8 +9,9 @@ local REFRESH_MS = 10000
 ---
 -- Autofish
 ---
+
 Autofish = defclass(Autofish, widgets.Window)
-Autofish.ATTRS = {
+Autofish.ATTRS{
     frame_title = "Autofish",
     frame = {w=35, h=11},
     resizable = false

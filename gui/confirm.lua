@@ -1,8 +1,27 @@
 -- config ui for confirm
+--@ module = true
+local GLOBAL_KEY = 'confirm'
+local CONFIRM_CONFIG_FILE = 'dfhack-config/confirm.json'
+local json = require('json')
+local confirm = require('plugins.confirm')
+local gui = require('gui')
+local widgets = require('gui.widgets')
 
-confirm = require 'plugins.confirm'
-gui = require 'gui'
-widgets = require 'gui.widgets'
+dfhack.onStateChange[GLOBAL_KEY] = function(sc)
+    if sc ~= SC_CORE_INITIALIZED then return end
+    local ok, config = pcall(json.decode_file, CONFIRM_CONFIG_FILE)
+    local all_confirms = confirm.get_conf_data()
+    -- enable all confirms by default so new confirms are automatically enabled
+    for _, c in ipairs(all_confirms) do
+        confirm.set_conf_state(c.id, true)
+    end
+
+    if not ok then return end
+    -- update confirm state based on config
+    for _, c in ipairs(config) do
+        confirm.set_conf_state(c.id, c.enabled)
+    end
+end
 
 Opts = defclass(Opts, widgets.Window)
 Opts.ATTRS = {
@@ -51,6 +70,13 @@ function Opts:init()
     end
 end
 
+function Opts:persist_data()
+    if not safecall(json.encode_file, self.data, CONFIRM_CONFIG_FILE) then
+        dfhack.printerr(('failed to save confirm config file: "%s"')
+                :format(path))
+    end
+end
+
 function Opts:refresh()
     self.data = confirm.get_conf_data()
     self.any_paused = false
@@ -89,6 +115,7 @@ function Opts:toggle(idx)
     local choice = self.data[idx]
     confirm.set_conf_state(choice.id, not choice.enabled)
     self:refresh()
+    self:persist_data()
 end
 
 function Opts:toggle_all(choice)
@@ -96,6 +123,7 @@ function Opts:toggle_all(choice)
         confirm.set_conf_state(c.id, not self.data[choice].enabled)
     end
     self:refresh()
+    self:persist_data()
 end
 
 function Opts:unpause_all()
@@ -116,6 +144,10 @@ end
 
 function OptsScreen:onDismiss()
     view = nil
+end
+
+if dfhack_flags.module then
+    return
 end
 
 view = view and view:raise() or OptsScreen{}:show()

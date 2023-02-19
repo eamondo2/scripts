@@ -469,11 +469,17 @@ function getStringValue(trg,field)
     local text=tostring(obj[field])
     pcall(function()
     if obj._field ~= nil then
-        local enum=obj:_field(field)._type
+        local f = obj:_field(field)
+        if df.coord:is_instance(f) then
+            text=('(%d, %d, %d) '):format(f.x, f.y, f.z) .. text
+        elseif df.coord2d:is_instance(f) then
+            text=('(%d, %d) '):format(f.x, f.y) .. text
+        end
+        local enum=f._type
         if enum._kind=="enum-type" then
             text=text.." ("..tostring(enum[obj[field]])..")"
         end
-        local ref_target=obj:_field(field).ref_target
+        local ref_target=f.ref_target
         if ref_target then
             text=text.. " (ref-target: "..getmetatable(ref_target)..")"
         end

@@ -14,19 +14,44 @@ that repo.
 # Future
 
 ## New Scripts
+- `combine`: combines stacks of food and plant items. Merge of `combine-plants` and `combine-drinks`.
+
+## Fixes
+- `makeown`: fixes errors caused by using makeown on an invader
+- `gui/blueprint`: correctly use setting presets passed on the commandline
+- `gui/quickfort`: correctly use settings presets passed on the commandline
+- `devel/query`: can now properly index vectors in the --table argument
+-@ `forbid`: fix detection of unreachable items for items in containers
+-@ `unforbid`: fix detection of unreachable items for items in containers
+
+## Misc Improvements
+- `devel/visualize-structure`: now automatically inspects the contents of most pointer fields, rather than inspecting the pointers themselves
+- `devel/query`: will now search for jobs at the map coordinate highlighted, if no explicit job is highlighted and there is a map tile highlighted
+- Add overlay to caravan.lua visible on the trade screen that enables:
+    - Selecting all items inside a bin, minus the bin
+    - Collapsing all bins or a single bin
+    - Collapsing all categories
+-@ `devel/hello-world`: updated to use ZScreen
+
+## Removed
+- `combine-drinks` and `combine-plants`
+
+# 50.07-alpha1
+
+## New Scripts
 - `gui/dig`: digging designation tool for shapes and patterns
 - `makeown`: adds the selected unit as a member of your fortress
 
 ## Fixes
-- `gui/unit-syndromes`: allow the window widgets to be interacted with
-- `fix/protect-nicks`: now works by setting the historical figure nickname
-- `gui/liquids`: fixed issues with unit pathing after adding/removing liquids
+-@ `gui/unit-syndromes`: allow the window widgets to be interacted with
+-@ `fix/protect-nicks`: now works by setting the historical figure nickname
+-@ `gui/liquids`: fixed issues with unit pathing after adding/removing liquids
+-@ `gui/dig`: Fix for 'continuing' auto-stair designation. Avoid nil index issue for tile_type
 
 ## Misc Improvements
 - `gui/gm-editor`: now supports multiple independent data inspection windows
+- `gui/gm-editor`: now prints out contents of coordinate vars instead of just the type
 - `rejuvenate`: now takes an --age parameter to choose a desired age.
-
-## Removed
 
 # 50.05-alpha3.1
 
@@ -55,8 +80,8 @@ that repo.
 - `ban-cooking`: report number of items banned.
 - `build-now`: now handles dirt roads and initializes farm plots properly
 - `devel/click-monitor`: report on middle mouse button actions
-- `gui/autochop`: hide uninteresting burrows by default
-- `gui/blueprint`: allow map movement with the keyboard while the UI is open
+-@ `gui/autochop`: hide uninteresting burrows by default
+-@ `gui/blueprint`: allow map movement with the keyboard while the UI is open
 - `gui/create-item`: support spawning corpse pieces (e.g. shells) under "body part"
 - `gui/create-item`: added search and filter capabilities to the selection lists
 - `gui/launcher`: make command output scrollback separate from the help text so players can continue to see the output of the previous command as they type the next one

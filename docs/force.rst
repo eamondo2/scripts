@@ -37,7 +37,6 @@ The recognized event types are:
 - ``Caravan``
 - ``Migrants``
 - ``Diplomat``
-- ``FeatureAttack`` (Underworld incursion)
 - ``Megabeast``
 - ``WildlifeCurious``
 - ``WildlifeMischievous``

@@ -267,12 +267,22 @@ end
 
 function make_own(unit)
     --tweak makeown
+    unit.flags1.marauder = false;
     unit.flags1.merchant = false;
     unit.flags1.forest = false;
-    unit.flags2.resident = false;
-    unit.flags2.visitor = false;
-    unit.flags2.visitor_uninvited = false; --in case you use makeown on a beast :P
+    unit.flags1.diplomat = false;
+    unit.flags1.active_invader = false;
+    unit.flags1.hidden_in_ambush = false;
+    unit.flags1.invader_origin = false;
+    unit.flags1.hidden_ambusher = false;
+    unit.flags1.invades = false;
     unit.flags2.underworld = false;        --or on a demon!
+    unit.flags2.resident = false;
+    unit.flags2.visitor_uninvited = false; --in case you use makeown on a beast :P
+    unit.flags2.visitor = false;
+    unit.flags3.guest = false;
+    unit.flags4.invader_waits_for_parley = false;
+    unit.flags4.agitated_wilderness_creature = false;
 
     unit.civ_id = df.global.plotinfo.civ_id;
 

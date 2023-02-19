@@ -17,6 +17,7 @@ local FORT_SERVICES = {
     'autoclothing',
     'autofarm',
     'autofish',
+    'autolabor',
     'autonestbox',
     'autoslab',
     'autounsuspend',
